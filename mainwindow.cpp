@@ -41,6 +41,14 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    QFile sFile("assets:/topnviewerd");
+    QFile dFile("./topnviewerd");
+    if (!dFile.exists()) {
+        assert(sFile.exists());
+        sFile.copy("./topnviewerd");
+        QFile::setPermissions("./topnviewerd", QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
+    }
+
     QHeaderView *verticalHeader = ui->tableWidget->verticalHeader();
 
 #ifdef Q_OS_ANDROID
@@ -66,10 +74,12 @@ MainWindow::MainWindow(QWidget *parent)
 
     // start Server
     {
-        system("ifconfig wlan0 up");
+        system("su -c \"ifconfig wlan0 down\"");
+        system("su -c \"ifconfig wlan0 up\"");
         system("export LD_PRELOAD=/system/lib/libfakeioctl.so");
         system("su -c \"nexutil -m2\"");
-        system("su -c \"/data/local/tmp/topnviewerd&\"");
+        system("su -c \"/data/data/org.lucy.topnviewer/files/topnviewerd&\"");
+        //system("su -c \"/data/local/tmp/topnviewerd\"");
         usleep(500000);
     }
 
@@ -93,22 +103,20 @@ MainWindow::MainWindow(QWidget *parent)
             exit(1);
         }
     }
-    int server_port = 9998;
 
-    //socket connection
+    int server_port = 2345;
+    if(!connect_sock(&client_sock, server_port))
     {
-        if(!connect_sock(&client_sock, server_port))
-        {
-            QMessageBox MsgBox;
-            MsgBox.setWindowTitle("Socket failed");
-            MsgBox.setText("Socket creation failed. plz restart.");
-            MsgBox.setStandardButtons(QMessageBox::Ok);
-            MsgBox.setDefaultButton(QMessageBox::Ok);
-            if ( MsgBox.exec() == QMessageBox::Ok ){
-                exit(1);
-            }
+        QMessageBox MsgBox;
+        MsgBox.setWindowTitle("Socket failed");
+        MsgBox.setText("Socket creation failed. plz restart.");
+        MsgBox.setStandardButtons(QMessageBox::Ok);
+        MsgBox.setDefaultButton(QMessageBox::Ok);
+        if ( MsgBox.exec() == QMessageBox::Ok ){
+            system("pkill topnviewerd");
             exit(1);
         }
+        exit(1);
     }
 
     scanThread_ = new ScanThread(client_sock);
@@ -126,7 +134,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-    system("killall -9 topnviewerd");
+    system("pkill topnviewerd");
     delete ui;
 }
 
@@ -247,6 +255,11 @@ void MainWindow::RealtimeDataSlot()
     ui->graphWidget->xAxis->setRange(key,8,Qt::AlignRight);
     ui->graphWidget->replot();
 
+    for(int i = 0 ; i < ui->graphWidget->graphCount(); i++){
+        qDebug() << ui->graphWidget->graph(i)->name();
+        qDebug() << ui->graphWidget->graph(i)->data().data();
+    }
+
 }
 
 void MainWindow::processCaptured(char* data)
@@ -327,26 +340,26 @@ void MainWindow::processCaptured(char* data)
         ui->tableWidget->item(ap_row, 2)->setBackgroundColor(Qt::gray);
     }
 
-//    char tmp_buf[1024] = {0,};
-//    int ret = 0;
-//    FILE *fp = popen("su -c \"ps | grep topnviewerd\"", "rt");
-//    while(fgets(tmp_buf, 1024,fp)){
-//        if(strstr(tmp_buf, "topnviewerd") != NULL){
-//            ret = 1;
-//            break;
-//        }
-//    }
+    //    char tmp_buf[1024] = {0,};
+    //    int ret = 0;
+    //    FILE *fp = popen("su -c \"ps | grep topnviewerd\"", "rt");
+    //    while(fgets(tmp_buf, 1024,fp)){
+    //        if(strstr(tmp_buf, "topnviewerd") != NULL){
+    //            ret = 1;
+    //            break;
+    //        }
+    //    }
 
-//    if(ret == 0){
-//        QMessageBox MsgBox;
-//        MsgBox.setWindowTitle("Error");
-//        MsgBox.setText("Server is not running");
-//        MsgBox.setStandardButtons(QMessageBox::Ok);
-//        MsgBox.setDefaultButton(QMessageBox::Ok);
-//        if ( MsgBox.exec() == QMessageBox::Ok ){
-//            exit(1);
-//        }
-//    }
+    //    if(ret == 0){
+    //        QMessageBox MsgBox;
+    //        MsgBox.setWindowTitle("Error");
+    //        MsgBox.setText("Server is not running");
+    //        MsgBox.setStandardButtons(QMessageBox::Ok);
+    //        MsgBox.setDefaultButton(QMessageBox::Ok);
+    //        if ( MsgBox.exec() == QMessageBox::Ok ){
+    //            exit(1);
+    //        }
+    //    }
 
 }
 
@@ -378,10 +391,10 @@ void MainWindow::on_pushButton_clicked()
 {
     if(ui->pushButton->text() == "AP scan start"){ // Not start
 
-//        system("ifconfig wlan0 up");
-//        system("export LD_PRELOAD=/system/lib/libfakeioctl.so");
-//        system("su -c \"nexutil -m2\"");
-//        usleep(500000);
+        //        system("ifconfig wlan0 up");
+        //        system("export LD_PRELOAD=/system/lib/libfakeioctl.so");
+        //        system("su -c \"nexutil -m2\"");
+        //        usleep(500000);
 
         ui->pushButton->setText("AP scan stop");
         ui->label->setText("");

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.13.2, 2020-11-08T21:51:04. -->
+<!-- Written by QtCreator 4.13.2, 2020-11-24T22:19:23. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -372,8 +372,8 @@
     <value type="int" key="PE.EnvironmentAspect.Base">0</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">TopNViewer</value>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.AndroidRunConfiguration:/root/becareful/TopNViewer/TopNViewer.pro</value>
-    <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">/root/becareful/TopNViewer/TopNViewer.pro</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.AndroidRunConfiguration:/root/lucy/TopNViewer/TopNViewer.pro</value>
+    <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">/root/lucy/TopNViewer/TopNViewer.pro</value>
     <value type="QString" key="RunConfiguration.Arguments"></value>
     <value type="bool" key="RunConfiguration.Arguments.multi">false</value>
     <value type="QString" key="RunConfiguration.OverrideDebuggerStartup"></value>
