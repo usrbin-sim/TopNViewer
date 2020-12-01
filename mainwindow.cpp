@@ -75,9 +75,9 @@ MainWindow::MainWindow(QWidget *parent)
     // start Server
     {
         system("su -c \"ifconfig wlan0 down\"");
-        system("su -c \"ifconfig wlan0 up\"");
         system("export LD_PRELOAD=/system/lib/libfakeioctl.so");
         system("su -c \"nexutil -m2\"");
+        system("su -c \"ifconfig wlan0 up\"");
         system("su -c \"/data/data/org.lucy.topnviewer/files/topnviewerd&\"");
         //system("su -c \"/data/local/tmp/topnviewerd\"");
         usleep(500000);
@@ -85,6 +85,21 @@ MainWindow::MainWindow(QWidget *parent)
 
     char tmp_buf[1024] = {0,};
     int ret = 0;
+
+    memset(buf, 0x00, BUF_SIZE);
+    recv_data(client_sock, buf);
+    if (!memcmp(buf, "5", 1)){
+        QMessageBox MsgBox;
+        MsgBox.setWindowTitle("Error");
+        MsgBox.setText("pcap open failed.");
+        MsgBox.setStandardButtons(QMessageBox::Ok);
+        MsgBox.setDefaultButton(QMessageBox::Ok);
+        if ( MsgBox.exec() == QMessageBox::Ok ){
+            exit(1);
+        }
+    }
+
+    ret = 0;
     FILE *fp = popen("su -c \"ps | grep topnviewerd\"", "rt");
     while(fgets(tmp_buf, 1024,fp)){
         if(strstr(tmp_buf, "topnviewerd") != NULL){
@@ -92,7 +107,6 @@ MainWindow::MainWindow(QWidget *parent)
             break;
         }
     }
-
     if(ret == 0){
         QMessageBox MsgBox;
         MsgBox.setWindowTitle("Error");
@@ -339,27 +353,6 @@ void MainWindow::processCaptured(char* data)
         ui->tableWidget->item(ap_row, 1)->setBackgroundColor(Qt::gray);
         ui->tableWidget->item(ap_row, 2)->setBackgroundColor(Qt::gray);
     }
-
-    //    char tmp_buf[1024] = {0,};
-    //    int ret = 0;
-    //    FILE *fp = popen("su -c \"ps | grep topnviewerd\"", "rt");
-    //    while(fgets(tmp_buf, 1024,fp)){
-    //        if(strstr(tmp_buf, "topnviewerd") != NULL){
-    //            ret = 1;
-    //            break;
-    //        }
-    //    }
-
-    //    if(ret == 0){
-    //        QMessageBox MsgBox;
-    //        MsgBox.setWindowTitle("Error");
-    //        MsgBox.setText("Server is not running");
-    //        MsgBox.setStandardButtons(QMessageBox::Ok);
-    //        MsgBox.setDefaultButton(QMessageBox::Ok);
-    //        if ( MsgBox.exec() == QMessageBox::Ok ){
-    //            exit(1);
-    //        }
-    //    }
 
 }
 
