@@ -64,6 +64,8 @@ MainWindow::MainWindow(QWidget *parent)
 #ifdef Q_OS_ANDROID
     copyFileFromAssets("topnviewerd.sh", QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
     copyFileFromAssets("topnviewerd", QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
+    copyFileFromAssets("iwlist", QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
+    copyFileFromAssets("iwconfig", QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
 #endif // Q_OS_ANDROID
 
     QHeaderView *verticalHeader = ui->tableWidget->verticalHeader();
