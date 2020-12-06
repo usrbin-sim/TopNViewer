@@ -9,6 +9,8 @@
 #include <QMutex>
 #include <QPair>
 #include <QTimer>
+#include <unistd.h>
+#include <time.h>
 #include "socket.h"
 #include "thread.h"
 
@@ -16,7 +18,12 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
-struct TalkerMap : QMap<QString, QString>{
+struct TalkerMap_val{
+    QString channel;
+    clock_t last_recv_time;
+};
+
+struct TalkerMap : QMap<QString, TalkerMap_val>{
     QMutex m;
 };
 
@@ -24,7 +31,6 @@ typedef struct ap_map_info
 {
     int channel;
     TalkerMap station_map;
-
 }ap_info;
 
 
@@ -40,9 +46,8 @@ public:
     char data[BUF_SIZE];
     char buf[BUF_SIZE];
     QString selected_ap;
-    bool isApScan;
-    bool isStationScan;
-    //QMap <QString, ap_map_info> ap_map;
+    volatile bool isApScan;
+    volatile bool isStationScan;
     std::map<QString, ap_map_info> ap_map;
     ScanThread * scanThread_;
 

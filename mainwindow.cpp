@@ -74,12 +74,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     // start Server
     {
-        system("su -c \"ifconfig wlan0 down\"");
-        system("export LD_PRELOAD=/system/lib/libfakeioctl.so");
-        system("su -c \"nexutil -m2\"");
-        system("su -c \"ifconfig wlan0 up\"");
         system("su -c \"/data/data/org.lucy.topnviewer/files/topnviewerd&\"");
-        //system("su -c \"/data/local/tmp/topnviewerd\"");
         usleep(500000);
     }
 
@@ -117,7 +112,7 @@ MainWindow::MainWindow(QWidget *parent)
             exit(1);
         }
     }
-
+    sleep(1);
     int server_port = 2345;
     if(!connect_sock(&client_sock, server_port))
     {
@@ -127,7 +122,7 @@ MainWindow::MainWindow(QWidget *parent)
         MsgBox.setStandardButtons(QMessageBox::Ok);
         MsgBox.setDefaultButton(QMessageBox::Ok);
         if ( MsgBox.exec() == QMessageBox::Ok ){
-            system("pkill topnviewerd");
+            system("su -c \"pkill topnviewerd\"");
             exit(1);
         }
         exit(1);
@@ -148,7 +143,10 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-    system("pkill topnviewerd");
+    memset(buf, 0x00, BUF_SIZE);
+    memcpy(buf, "7", 1);
+    send_data(client_sock, buf);
+    system("su -c \"pkill topnviewerd\"");
     delete ui;
 }
 
@@ -187,7 +185,16 @@ void MainWindow::RealtimeDataSlot()
     // copy map to vector for align
     ap_map[selected_ap].station_map.m.lock();
     for (auto iter = ap_map[selected_ap].station_map.begin(); iter != ap_map[selected_ap].station_map.end(); ++iter){
-        talker_vec.emplace_back(std::make_pair(iter.key(), iter.value().toInt()));
+        if((clock() - iter.value().last_recv_time)/CLOCKS_PER_SEC > 5){
+            for(int j = 0; j < ui->graphWidget->graphCount(); j++){
+                if(ui->graphWidget->graph(j)->name() == iter.key()){
+                    ui->graphWidget->removeGraph(j);
+                    break;
+                }
+            }
+            continue;
+        }
+        talker_vec.emplace_back(std::make_pair(iter.key(), iter.value().channel.toInt()));
     }
     ap_map[selected_ap].station_map.m.unlock();
 
@@ -268,12 +275,6 @@ void MainWindow::RealtimeDataSlot()
 
     ui->graphWidget->xAxis->setRange(key,8,Qt::AlignRight);
     ui->graphWidget->replot();
-
-    for(int i = 0 ; i < ui->graphWidget->graphCount(); i++){
-        qDebug() << ui->graphWidget->graph(i)->name();
-        qDebug() << ui->graphWidget->graph(i)->data().data();
-    }
-
 }
 
 void MainWindow::processCaptured(char* data)
@@ -329,7 +330,8 @@ void MainWindow::processCaptured(char* data)
     else if (info[0] == "2")
     {
         ap_map[info[1]].station_map.m.lock();
-        ap_map[info[1]].station_map[info[2]] = info[3];
+        ap_map[info[1]].station_map[info[2]].channel = info[3];
+        ap_map[info[1]].station_map[info[2]].last_recv_time = clock();
         ap_map[info[1]].station_map.m.unlock();
 
 
@@ -376,6 +378,10 @@ void MainWindow::on_tableWidget_cellDoubleClicked(int row, int column)
         strcpy(buf, QString::number(ap_map[selected_ap].channel).toStdString().c_str());
         send_data(client_sock, buf);
 
+        memset(buf, 0x00, BUF_SIZE);
+        strcpy(buf, QString(selected_ap).toStdString().c_str());
+        send_data(client_sock, buf);
+
         DataTimer.start(1000);
     }
 }
@@ -383,12 +389,6 @@ void MainWindow::on_tableWidget_cellDoubleClicked(int row, int column)
 void MainWindow::on_pushButton_clicked()
 {
     if(ui->pushButton->text() == "AP scan start"){ // Not start
-
-        //        system("ifconfig wlan0 up");
-        //        system("export LD_PRELOAD=/system/lib/libfakeioctl.so");
-        //        system("su -c \"nexutil -m2\"");
-        //        usleep(500000);
-
         ui->pushButton->setText("AP scan stop");
         ui->label->setText("");
 

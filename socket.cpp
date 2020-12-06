@@ -20,10 +20,13 @@ bool connect_sock(int * client_sock, int server_port)
     {
         ret = false;
     }
-
     getsockname(*client_sock, (struct sockaddr *)&client_addr, &addr_size); // get client port
 
     return ret;
+}
+
+void close_socket(int * client_sock){
+    close(*client_sock);
 }
 
 bool send_data(int client_sock, char *data)

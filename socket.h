@@ -12,5 +12,6 @@
 static const int BUF_SIZE=1024;
 
 bool connect_sock(int * client_sock, int server_port);
+void close_socket(int * client_sock);
 bool send_data(int client_sock, char *data);
 bool recv_data(int client_sock, char *data);
