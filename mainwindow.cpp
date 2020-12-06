@@ -35,19 +35,36 @@ QColor makeColor(QString str){
     return QColor(r, g, b);
 }
 
+#ifdef Q_OS_ANDROID
+bool copyFileFromAssets(QString fileName, QFile::Permissions permissions) {
+    QString sourceFileName = QString("assets:/") + fileName;
+    QFile sFile(sourceFileName);
+    QFile dFile(fileName);
+    if (!dFile.exists()) {
+        if (!sFile.exists()) {
+            QString msg = QString("src file(%1) not exists").arg(sourceFileName);
+            qDebug() << qPrintable(msg);
+            return false;
+        }
+
+        sFile.copy(fileName);
+        QFile::setPermissions(fileName, permissions);
+    }
+    return true;
+}
+#endif // Q_OS_ANDROID
+
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
 
-    QFile sFile("assets:/topnviewerd");
-    QFile dFile("./topnviewerd");
-    if (!dFile.exists()) {
-        assert(sFile.exists());
-        sFile.copy("./topnviewerd");
-        QFile::setPermissions("./topnviewerd", QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
-    }
+#ifdef Q_OS_ANDROID
+    copyFileFromAssets("topnviewerd.sh", QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
+    copyFileFromAssets("topnviewerd", QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
+#endif // Q_OS_ANDROID
 
     QHeaderView *verticalHeader = ui->tableWidget->verticalHeader();
 
@@ -74,7 +91,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     // start Server
     {
-        system("su -c \"/data/data/org.lucy.topnviewer/files/topnviewerd&\"");
+        system("su -c \"/data/data/org.lucy.topnviewer/files/topnviewerd.sh&\"");
         usleep(500000);
     }
 

@@ -54,6 +54,7 @@ contains(ANDROID_TARGET_ARCH,armeabi-v7a) {
         $$PWD/android
 }
 
+deployment.files += /root/lucy/TopNViewer/topnviewerd.sh
 deployment.files += /root/lucy/TopNViewerd/topnviewerd
 deployment.path = /assets
 INSTALLS += deployment
