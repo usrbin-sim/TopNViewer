@@ -1,8 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-static int MAX_GRAPH_SIZE = 5;
-
 class MyScrollBar : public QScrollBar
 {
 public:
@@ -204,7 +202,7 @@ void MainWindow::RealtimeDataSlot()
     // copy map to vector for align
     ap_map[selected_ap].station_map.m.lock();
     for (auto iter = ap_map[selected_ap].station_map.begin(); iter != ap_map[selected_ap].station_map.end(); ++iter){
-        if((clock() - iter.value().last_recv_time)/CLOCKS_PER_SEC > 5){
+        if((clock() - iter.value().last_recv_time)/CLOCKS_PER_SEC > 8){
             for(int j = 0; j < ui->graphWidget->graphCount(); j++){
                 if(ui->graphWidget->graph(j)->name() == iter.key()){
                     ui->graphWidget->removeGraph(j);
